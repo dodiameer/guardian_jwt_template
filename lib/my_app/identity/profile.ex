@@ -19,6 +19,9 @@ defmodule MyApp.Identity.Profile do
     |> cast(attrs, [:username])
     |> validate_required([:username])
     |> unique_constraint(:username)
-    |> validate_format(:username, ~r/^[a-z0-9-]{3,15}$/, message: "Username must contain only letters, numbers, and hyphens, and be between 3-15 characters")
+    |> validate_format(:username, ~r/^[a-z0-9-]{3,15}$/,
+      message:
+        "Username must contain only letters, numbers, and hyphens, and be between 3-15 characters"
+    )
   end
 end

@@ -11,6 +11,7 @@ defmodule MyAppWeb.AccountController do
       {:ok, account} ->
         conn
         |> account_with_token(account)
+
       {:error, changeset} ->
         {:error, changeset}
     end
@@ -21,6 +22,7 @@ defmodule MyAppWeb.AccountController do
       {:ok, account} ->
         conn
         |> account_with_token(account)
+
       error ->
         error
     end
@@ -34,13 +36,20 @@ defmodule MyAppWeb.AccountController do
 
   def me(conn, _params) do
     account = Guardian.Plug.current_resource(conn)
+
     conn
     |> render("account.json", account: account)
   end
 
   defp account_with_token(conn, account) do
-    {:ok, token} = Identity.generate_token(account)
+    {:ok, token, refresh_token} = Identity.generate_token(account)
+
     conn
+    |> put_resp_cookie("my_app_rjwt", refresh_token,
+      sign: true,
+      max_age: Identity.get_token_ttl(:refresh, %{seconds: true}),
+      http_only: true
+    )
     |> render("account.token.json", account: account, token: token)
   end
 end

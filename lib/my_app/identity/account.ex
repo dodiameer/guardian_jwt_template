@@ -22,12 +22,21 @@ defmodule MyApp.Identity.Account do
     |> cast(attrs, [:email, :password])
     |> validate_required([:email, :password])
     |> unique_constraint(:email)
-    |> validate_format(:email, ~r/[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/, message: "Invalid email")
-    |> validate_format(:password, ~r/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/, message: " Minimum eight characters, at least one upper case English letter, one lower case English letter, one number and one special character")
+    |> validate_format(:email, ~r/[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/,
+      message: "Invalid email"
+    )
+    |> validate_format(
+      :password,
+      ~r/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/,
+      message:
+        " Minimum eight characters, at least one upper case English letter, one lower case English letter, one number and one special character"
+    )
     |> put_password_hash()
   end
 
-  defp put_password_hash(%Ecto.Changeset{valid?: true, changes: %{password: password}} = changeset) do
+  defp put_password_hash(
+         %Ecto.Changeset{valid?: true, changes: %{password: password}} = changeset
+       ) do
     change(changeset, Pbkdf2.add_hash(password))
   end
 

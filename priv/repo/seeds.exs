@@ -11,5 +11,7 @@
 # and so on) as they will fail if something goes wrong.
 alias MyApp.{Repo, Identity, Identity.Account}
 
-account1 = Identity.change_account(%Account{}, %{email: "user1@example.com", password: "Pass123$"})
+account1 =
+  Identity.change_account(%Account{}, %{email: "user1@example.com", password: "Pass123$"})
+
 Repo.insert!(account1)

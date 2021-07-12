@@ -203,10 +203,12 @@ defmodule MyApp.Identity do
   """
   def authenticate_account(email, password) do
     query = from a in Account, where: a.email == ^email
+
     case Repo.one(query) do
       nil ->
         Pbkdf2.no_user_verify()
         {:error, :invalid_credentials}
+
       account ->
         if Pbkdf2.verify_pass(password, account.password_hash) do
           {:ok, account}
@@ -217,9 +219,32 @@ defmodule MyApp.Identity do
   end
 
   alias MyApp.Identity.Guardian
+
   def generate_token(%Account{} = account) do
-    with {:ok, token, _claims} <- Guardian.encode_and_sign(account) do
-      {:ok, token}
+    with {:ok, token, _claims} <-
+           Guardian.encode_and_sign(account, %{}, ttl: get_token_ttl(:access, %{seconds: false})),
+         {:ok, refresh_token, _claims} <-
+           Guardian.encode_and_sign(account, %{},
+             token_type: "refresh",
+             ttl: get_token_ttl(:refresh, %{seconds: false})
+           ) do
+      {:ok, token, refresh_token}
+    end
+  end
+
+  def get_token_ttl(:access, opts) do
+    if opts.seconds do
+      60 * 15
+    else
+      {15, :minutes}
+    end
+  end
+
+  def get_token_ttl(:refresh, opts) do
+    if opts.seconds do
+      60 * 60 * 24 * 7 * 4
+    else
+      {4, :weeks}
     end
   end
 end

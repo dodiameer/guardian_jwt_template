@@ -4,6 +4,6 @@ defmodule MyApp.Identity.Pipeline do
     error_handler: MyApp.Identity.ErrorHandler,
     module: MyApp.Identity.Guardian
 
-    plug Guardian.Plug.VerifyHeader, claims: %{"typ" => "access"}
-    plug Guardian.Plug.LoadResource, allow_blank: true
+  plug Guardian.Plug.VerifyHeader, claims: %{"typ" => "access"}
+  plug Guardian.Plug.LoadResource, allow_blank: true
 end

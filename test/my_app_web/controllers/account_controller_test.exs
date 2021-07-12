@@ -4,12 +4,8 @@ defmodule MyAppWeb.AccountControllerTest do
   alias MyApp.Identity
   alias MyApp.Identity.Account
 
-  @create_attrs %{
-
-  }
-  @update_attrs %{
-
-  }
+  @create_attrs %{}
+  @update_attrs %{}
   @invalid_attrs %{}
 
   def fixture(:account) do
