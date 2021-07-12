@@ -50,16 +50,21 @@ defmodule MyAppWeb.AccountController do
   def refresh(conn, _params) do
     refresh_token_cookie = conn.req_cookies["my_app_rjwt"]
     # ? Decode the cookie into a JWT
-    old_refresh_token = MyApp.Utilities.decode_signed_cookie(refresh_token_cookie)
-    old_access_token = Guardian.Plug.current_token(conn)
+    case MyApp.Utilities.decode_signed_cookie(refresh_token_cookie) do
+      nil ->
+        {:error, :no_refresh_token}
 
-    with {:ok, account, _claims} <-
-           Guardian.resource_from_token(old_refresh_token, %{"typ" => "refresh"}) do
-      Guardian.revoke(old_access_token)
-      Guardian.revoke(old_refresh_token)
+      old_refresh_token ->
+        old_access_token = Guardian.Plug.current_token(conn)
 
-      conn
-      |> account_with_token(account)
+        with {:ok, account, _claims} <-
+               Guardian.resource_from_token(old_refresh_token, %{"typ" => "refresh"}) do
+          Guardian.revoke(old_access_token)
+          Guardian.revoke(old_refresh_token)
+
+          conn
+          |> account_with_token(account)
+        end
     end
   end
 

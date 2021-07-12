@@ -13,4 +13,11 @@ defmodule MyAppWeb.FallbackController do
     |> put_view(MyAppWeb.ErrorView)
     |> render(:"404")
   end
+
+  def call(conn, {:error, :no_refresh_token}) do
+    conn
+    |> put_status(:unauthorized)
+    |> put_view(MyAppWeb.ErrorView)
+    |> render("unauthenticated.json")
+  end
 end

@@ -35,15 +35,14 @@ defmodule MyAppWeb.Router do
 
     delete "/logout", AccountController, :logout
     get "/me", AccountController, :me
-    get "/refresh", AccountController, :refresh
   end
 
-  # ?? Refresh token doesn't care about authentication status
-  # scope "/auth", MyAppWeb do
-  #   pipe_through [:api, :auth]
+  #?? Refresh token doesn't care about authentication status
+  scope "/auth", MyAppWeb do
+    pipe_through [:api, :auth]
 
-  #   get "/refresh", AccountController, :refresh
-  # end
+    get "/refresh", AccountController, :refresh
+  end
 
   # Enables LiveDashboard only for development
   #
