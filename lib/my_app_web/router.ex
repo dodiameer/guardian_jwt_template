@@ -3,12 +3,12 @@ defmodule MyAppWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_cookies, signed: ~w(my_app_rjwt)
   end
 
   # Maybe authenticated
   pipeline :auth do
     plug MyApp.Identity.Pipeline
-    plug :fetch_cookies, signed: ~w(my_app_rjwt)
   end
 
   pipeline :ensure_auth do
@@ -35,6 +35,7 @@ defmodule MyAppWeb.Router do
 
     delete "/logout", AccountController, :logout
     get "/me", AccountController, :me
+    get "/refresh", AccountController, :refresh
   end
 
   # ?? Refresh token doesn't care about authentication status

@@ -4,6 +4,12 @@ defmodule MyAppWeb.AccountController do
   alias MyApp.Identity
   alias MyApp.Identity.{Guardian}
 
+  @jwt_cookie_options [
+    sign: true,
+    max_age: Identity.get_token_ttl(:refresh, %{seconds: true}),
+    http_only: true
+  ]
+
   action_fallback MyAppWeb.FallbackController
 
   def register(conn, %{"account" => account_params}) do
@@ -29,8 +35,8 @@ defmodule MyAppWeb.AccountController do
   end
 
   def logout(conn, _params) do
-    # Currently does nothing, will be needed to add GuardianDB
     conn
+    |> delete_resp_cookie("my_app_rjwt", @jwt_cookie_options)
     |> render("logout.json")
   end
 
@@ -41,15 +47,27 @@ defmodule MyAppWeb.AccountController do
     |> render("account.json", account: account)
   end
 
+  def refresh(conn, _params) do
+    refresh_token_cookie = conn.req_cookies["my_app_rjwt"]
+    # ? Decode the cookie into a JWT
+    old_refresh_token = MyApp.Utilities.decode_signed_cookie(refresh_token_cookie)
+    old_access_token = Guardian.Plug.current_token(conn)
+
+    with {:ok, account, _claims} <-
+           Guardian.resource_from_token(old_refresh_token, %{"typ" => "refresh"}) do
+      Guardian.revoke(old_access_token)
+      Guardian.revoke(old_refresh_token)
+
+      conn
+      |> account_with_token(account)
+    end
+  end
+
   defp account_with_token(conn, account) do
     {:ok, token, refresh_token} = Identity.generate_token(account)
 
     conn
-    |> put_resp_cookie("my_app_rjwt", refresh_token,
-      sign: true,
-      max_age: Identity.get_token_ttl(:refresh, %{seconds: true}),
-      http_only: true
-    )
+    |> put_resp_cookie("my_app_rjwt", refresh_token, @jwt_cookie_options)
     |> render("account.token.json", account: account, token: token)
   end
 end
